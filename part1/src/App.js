@@ -1,6 +1,18 @@
 import logo from './logo.svg';
 import './App.css';
 
+function App () {
+  const title = "Welcome to the new blog" ;
+  
+  return (
+    <div className="App">
+      <div classname="content">
+        <h1>App Component</h1>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <div className="App">
