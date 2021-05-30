@@ -45,20 +45,34 @@ const App = () => {
     setFilter(event.target.value)
   }
  
-  const onSubmit = (newPerson) => {
-    const sameNamePersons = persons.filter(p => p.name.toUpperCase().indexOf(newPerson.name.toUpperCase())!=-1)
-    if (sameNamePersons.length>0) {
-      showNotification(newPerson.name + ' is already in list ', 'error' )
-  
+  const onAdd = (newPerson) => {
+    const sameNamePersonsArray = persons.filter((p) => {
+      return p.name.toUpperCase().indexOf(newPerson.name.toUpperCase()) != -1
+    })
+
+    if (sameNamePersonsArray.length > 0) {
+      // alert(newPerson.name + ' is already in list ', 'error' )
+      if (window.confirm(newPerson.name  + ' is already added to phonebook, replace the old number with a new one?')) {
+        const samePerson = sameNamePersonsArray[0]
+        personServices.update(samePerson.id, newPerson)
+        .then(response => {
+          setPersons([...persons.filter((p) => {
+            return p.id != samePerson.id
+          }), response.data])
+          showNotification(newPerson.name + ' is updated successfully', 'success')
+          console.log(response)
+        })
+      }
       return
     }
   
     personServices.create(newPerson)
       .then(response => {
         showNotification(newPerson.name + ' is added successfully', 'success')
+        const createdPerson = response.data
+        setPersons([...persons, createdPerson])
         console.log(response)
       })
-    setPersons([...persons, newPerson])
   }
 
  const handleDelete = (person) => {
@@ -81,7 +95,7 @@ const App = () => {
       <Notification message={message} />
       <FilterComponent filterHandler={filterHandler} filter={filter}/>
       <h3>Add a new</h3>
-      <PersonForm onSubmit={onSubmit}/>
+      <PersonForm onSubmit={onAdd}/>
       <h3>Numbers</h3>
       <Numbers persons={persons} filter={filter} handleDelete={handleDelete}/> 
     </div>

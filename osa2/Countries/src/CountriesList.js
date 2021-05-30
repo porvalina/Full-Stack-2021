@@ -4,12 +4,19 @@ import React, { useState,useEffect } from 'react'
 const Country = ({country}) => {
     const [weather, setWeather] = useState({})
     useEffect(() => {
+      console.log('weatherstack call')
         axios.get('http://api.weatherstack.com/current?access_key=a4570edcfc2a694fbb73110a3bb01b49&query=' + country.name)
         .then(response => {
             console.log('weatherstack got')
             console.log(response.data.current)
             setWeather(response.data.current)
         })
+        .catch(
+          error => {
+            console.log(error)
+          }
+        )
+
     }, [country])
 
     return <>
@@ -26,10 +33,14 @@ const Country = ({country}) => {
     <>
        <img src={country.flag} alt="" width="100px" />
     </>
-    <h3>Weather in {country.name}</h3>
-      <div>Temperature : {weather.temperature}</div>
-      <div><img src={weather.weather_icons[0]}/></div>
-      <div>Wind speed {weather.wind_speed} mph, direction {weather.wind_dir}</div>
+      <h3>Weather in {country.name}</h3>
+      {
+        weather.temperature ? <>
+          <div>Temperature : {weather.temperature}</div>
+          <div><img src={weather.weather_icons[0]}/></div>
+          <div>Wind speed {weather.wind_speed} mph, direction {weather.wind_dir}</div>
+        </>:null
+      }
     </>
 }
 
