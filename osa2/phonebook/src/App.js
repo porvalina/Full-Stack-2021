@@ -16,7 +16,7 @@ const App = () => {
   useEffect(() => {
     console.log('effect')
     
-    personServices.getAll('http://localhost:3001/persons')
+    personServices.getAll()
       .then(response => {
         console.log('promise fulfilled')
         setPersons(response.data)
@@ -72,6 +72,13 @@ const App = () => {
         const createdPerson = response.data
         setPersons([...persons, createdPerson])
         console.log(response)
+      }).catch(error => {
+        // pääset käsiksi palvelimen palauttamaan virheilmoitusolioon näin
+        // showNotification(error.response.data, 'error')
+        if( error.response ) {
+          showNotification(error.response.data.error, 'error')
+          console.warn(error.response.data.error); // => the response payload 
+        }
       })
   }
 
