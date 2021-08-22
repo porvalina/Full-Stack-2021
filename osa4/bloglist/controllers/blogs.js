@@ -100,7 +100,7 @@ blogsRouter.delete(`/:id`, async (request, response, next) => {
   if ( blog == null){
     return response.status(404).end()
   }
-  if ( blog.user.toString() !== decodedToken.id.toString() ) {
+  if ( blog.user && blog.user.toString() !== decodedToken.id.toString() ) {
     return response.status(401).json({ error: 'invalid user' })
   }
   try { 
