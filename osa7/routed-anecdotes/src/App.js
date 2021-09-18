@@ -59,7 +59,9 @@ const App = () => {
     <div>
        <h1>Software anecdotes</h1>
       <Menu />
+      <br /> 
       <Notification notification={notification}/>
+      <br /> 
       <Switch>
         <Route path="/anecdotes/:id">
           <Anecdote anecdotes={anecdotes} />
@@ -74,6 +76,7 @@ const App = () => {
           <AnecdoteList anecdotes={anecdotes} />
         </Route>
       </Switch>
+      <br /> 
       <Footer />
     </div>
   )
