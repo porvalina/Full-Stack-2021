@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
+import { setNotification } from '../reducers/NotificationReducer'
 
 const BlogForm = ({ createBlog }) => {
 
@@ -50,4 +52,9 @@ BlogForm.propTypes = {
   createBlog: PropTypes.func.isRequired,
 }
 
-export default BlogForm
+const mapDispatchToProps = {
+  setNotification: setNotification,
+}
+
+const ConnectedBlogForm = connect(null, mapDispatchToProps )(BlogForm)
+export default ConnectedBlogForm

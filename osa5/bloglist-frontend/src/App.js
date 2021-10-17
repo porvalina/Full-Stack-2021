@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef, useReducer } from 'react'
+import React, { useEffect, useRef, useReducer } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import BlogForm from './components/BlogForm'
 import LoginForm from './components/LoginForm'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
-
-const compareFn = (blog1, blog2) => {
-  return blog2.likes - blog1.likes
-}
+import { setNotification } from './reducers/NotificationReducer'
+import { fetchBlogs } from './reducers/BlogsReducer'
+import { connect } from 'react-redux'
 
 const userReducer = (state, action) => {
   if (action.type === 'SET_USER') {
@@ -17,22 +16,14 @@ const userReducer = (state, action) => {
   return state
 }
 
-const App = () => {
-  const [blogs, setBlogs] = useState([])
+const App = (props) => {
   const [user, dispatch] = useReducer(userReducer, null)
-  const [message, setMessage] = useState(null)
 
   const blogFormRef = useRef()
 
-  const getBlogs = () => {
-    blogService.getAll().then(blogs =>
-      setBlogs( blogs.sort(compareFn) )
-    )
-  }
-
   const saveLikesHandler = async (updatedBlog) => {
     await blogService.update(updatedBlog.id, updatedBlog)
-    getBlogs()
+    props.fetchBlogs()
   }
 
   const handleDelete = async (blog) => {
@@ -42,24 +33,14 @@ const App = () => {
         //showNotification(blog.title + ' is removed', 'success')
           console.log(response)
         })
-      getBlogs()
+      props.fetchBlogs()
     }
   }
 
-  const showNotification = (text, type) => {
-    setMessage({
-      text: text,
-      type: type
-    }
-    )
-    setTimeout(() => {
-      setMessage(null)
-    }, 5000)
-  }
 
   useEffect(() => {
     if (user && user.token)
-      getBlogs()
+      props.fetchBlogs()
   }, [user])
 
   useEffect(() => {
@@ -72,7 +53,7 @@ const App = () => {
       }
       dispatch(action)
       blogService.setToken(user.token)
-      getBlogs()
+      props.fetchBlogs()
     }
   }, [])
 
@@ -92,14 +73,14 @@ const App = () => {
       ...blog,
       userId: user.id
     })
-    showNotification('new blog ' + blog.title + ' by ' + blog.author + ' added.', 'success')
+    props.setNotification('new blog ' + blog.title + ' by ' + blog.author + ' added.')
     blogFormRef.current.toggleVisibility()
   }
 
   if (user === null) {
     return <div>
-      <Notification message={message} />
-      <LoginForm setUser={dispatch} showNotification={showNotification} />
+      <Notification />
+      <LoginForm setUser={dispatch} />
     </div>
   }
 
@@ -107,18 +88,30 @@ const App = () => {
     <div>
       <div style={{ margin:10 }}>
         <h1>blogs</h1>
-        <Notification message={message} />
+        <Notification />
         {user.name + ' logged in'}
         <button type="button" onClick={logout}>logout</button>
         <Togglable buttonLabel="new blog" ref={blogFormRef}>
           <BlogForm createBlog={createBlog} />
         </Togglable>
       </div>
-      {blogs.map(blog =>
+      {props.blogs.map(blog =>
         <Blog key={blog.id} saveLikesHandler={saveLikesHandler} handleDelete={handleDelete} user={user} blog={blog} />
       )}
     </div>
   )
 }
 
-export default App
+const mapStateToProps = (state) => {
+  return {
+    blogs: state.blogs
+  }
+}
+
+const mapDispatchToProps = {
+  setNotification: setNotification,
+  fetchBlogs: fetchBlogs,
+}
+
+const ConnectedApp = connect(mapStateToProps, mapDispatchToProps)(App)
+export default ConnectedApp

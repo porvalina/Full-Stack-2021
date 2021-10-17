@@ -1,14 +1,25 @@
 import React from 'react'
+import { connect } from 'react-redux'
 
-const Notification= ({ message }) => {
-  if (message === null) {
-    return null
+const Notification = (props) => {
+  const style = {
+    border: 'solid',
+    padding: 10,
+    borderWidth: 1
   }
-
+  if (!props.notification)
+    return null
   return (
-    <div className={message.type}>
-      {message.text}
+    <div style={style}>
+      {props.notification}
     </div>
   )
 }
-export default Notification
+const mapStateToProps = (state) => {
+  return {
+    notification: state.notification.notification
+  }
+}
+
+const ConnectedNotification = connect(mapStateToProps)(Notification)
+export default ConnectedNotification
