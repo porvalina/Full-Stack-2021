@@ -1,74 +1,50 @@
-import React, { useState } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { setNotification } from '../reducers/NotificationReducer'
-import loginService from '../services/login'
-import blogService from '../services/blogs'
+import {
+  Button,
+  TextField
+} from '@material-ui/core'
 
-const LoginForm = ({ setUser, setNotification }) => {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+import { login } from '../reducers/UserReducer'
+
+const LoginForm = ({ login }) => {
 
   const handleLogin = async(event) => {
     event.preventDefault()
-    try {
-      const user = await loginService.login({
-        username, password,
-      })
-      window.localStorage.setItem(
-        'loggedUser', JSON.stringify(user)
-      )
-      blogService.setToken(user.token)
-      const action = {
-        type: 'SET_USER',
-        payload: user
-      }
-
-      setUser(action)
-      setUsername('')
-      setPassword('')
-    } catch (error) {
-      console.log(error.response.data.error)
-      setNotification(error.response.data.error)
-    }
+    const username = event.target[0].value
+    const password = event.target[1].value
+    login(username, password)
   }
 
   return (
     <form onSubmit={handleLogin}>
       <h2>Login to application</h2>
       <div>
-            username
-        <input
-          id='username'
-          type="text"
-          value={username}
-          name="Username"
-          onChange={({ target }) => setUsername(target.value)}
-        />
+        <TextField label="username" />
       </div>
       <div>
-            password
-        <input
-          id='password'
-          type="password"
-          value={password}
-          name="Password"
-          onChange={({ target }) => setPassword(target.value)}
-        />
+        <TextField label="password" type='password' />
       </div>
-      <button id="login-button" type="submit">login</button>
+      <Button variant="contained" color="primary" type="submit">login</Button>
     </form>
   )
 }
 
 LoginForm.propTypes = {
-  setUser: PropTypes.func.isRequired,
-  setNotification: PropTypes.func.isRequired,
+  user: PropTypes.object,
+  login: PropTypes.func.isRequired,
+}
+
+const mapStateToProps = (state) => {
+  return {
+    user: state.user
+  }
 }
 
 const mapDispatchToProps = {
-  setNotification: setNotification,
+  login: login,
 }
 
-const ConnectedLoginForm = connect(null, mapDispatchToProps )(LoginForm)
+const ConnectedLoginForm = connect(mapStateToProps, mapDispatchToProps )(LoginForm)
 export default ConnectedLoginForm

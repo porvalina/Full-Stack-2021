@@ -1,25 +1,19 @@
 import React from 'react'
-import { connect } from 'react-redux'
+import { useSelector } from 'react-redux'
+import { Alert } from '@material-ui/lab'
 
-const Notification = (props) => {
-  const style = {
-    border: 'solid',
-    padding: 10,
-    borderWidth: 1
-  }
-  if (!props.notification)
-    return null
+const Notification = () => {
+  const notification = useSelector(state => state.notification.notification)
+
   return (
-    <div style={style}>
-      {props.notification}
+    <div>
+      {(notification &&
+        <Alert severity="success">
+          {notification}
+        </Alert>
+      )}
     </div>
   )
 }
-const mapStateToProps = (state) => {
-  return {
-    notification: state.notification.notification
-  }
-}
 
-const ConnectedNotification = connect(mapStateToProps)(Notification)
-export default ConnectedNotification
+export default Notification

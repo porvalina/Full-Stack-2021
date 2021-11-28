@@ -30,3 +30,32 @@ export const fetchBlogs = () => {
     )
   }
 }
+
+export const saveLikesHandler = (updatedBlog) => {
+  return async dispatch => {
+    blogService.update(updatedBlog.id, updatedBlog).then(() =>
+      dispatch(fetchBlogs())
+    )
+  }
+}
+
+export const addComment = (blodId, comment) => {
+  return async dispatch => {
+    blogService.addComment(blodId, comment).then(() =>
+      dispatch(fetchBlogs())
+    )
+  }
+}
+
+export const deleteBlog = (blog) => {
+  return async dispatch => {
+    if (window.confirm('Remove ' + blog.title  + ' by ' + blog.author)) {
+      await blogService.remove(blog.id)
+        .then(response => {
+        //showNotification(blog.title + ' is removed', 'success')
+          console.log(response)
+          dispatch(fetchBlogs())
+        })
+    }
+  }
+}

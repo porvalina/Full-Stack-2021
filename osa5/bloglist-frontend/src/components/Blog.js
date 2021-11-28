@@ -1,7 +1,22 @@
 import React, { useState }  from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import {
+  useParams
+} from 'react-router-dom'
 
-const Blog = ({ blog, user, saveLikesHandler, handleDelete }) => {
+import { saveLikesHandler, deleteBlog } from '../reducers/BlogsReducer'
+import CommentForm from './CommentForm'
+
+const Blog = ({ blogId }) => {
+
+  const id = blogId ? blogId : useParams().id
+
   const [visible, showFullBlog] = useState(false)
+
+  const dispatch = useDispatch()
+  const user = useSelector(state => state.user)
+  const blog = useSelector(state => state.blogs.find(blog => blog.id === id))
+
 
   const blogStyle = {
     padding: 10,
@@ -12,7 +27,11 @@ const Blog = ({ blog, user, saveLikesHandler, handleDelete }) => {
 
   const saveLikes = async () => {
     const updatedBlog = { ...blog, likes: blog.likes+1 }
-    saveLikesHandler(updatedBlog)
+    dispatch(saveLikesHandler(updatedBlog))
+  }
+
+  if (!blog) {
+    return null
   }
 
   if (visible === false) {
@@ -45,7 +64,7 @@ const Blog = ({ blog, user, saveLikesHandler, handleDelete }) => {
         {blog.author}
       </div>
       <div>
-        {blog.url}
+        <a href={blog.url} target="_blank" rel="noreferrer">{blog.url}</a>
       </div>
       <div>
         {blog.likes}&nbsp;
@@ -56,8 +75,17 @@ const Blog = ({ blog, user, saveLikesHandler, handleDelete }) => {
       <div>
         {user.name}
       </div>
+      <h3>comments</h3>
+      <CommentForm blogId={id} />
+      <ul>
+        {
+          blog.comments.map((comment, index) => <li key={index}>{ comment.comment }</li>)
+        }
+      </ul>
       <div>
-        <button style={deleteButtonStyle} onClick={() => handleDelete(blog)}>
+        <button style={deleteButtonStyle} onClick={() => {
+          dispatch(deleteBlog(blog))
+        }}>
           delete blog
         </button>
       </div>

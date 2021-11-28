@@ -1,4 +1,16 @@
-import React, { useEffect, useRef, useReducer } from 'react'
+import React, { useEffect, useRef } from 'react'
+import { connect } from 'react-redux'
+import {
+  Switch, Route
+} from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import Container from '@material-ui/core/Container'
+import TableContainer from '@material-ui/core/TableContainer'
+import Paper from '@material-ui/core/Paper'
+import Table from '@material-ui/core/Table'
+import TableRow from '@material-ui/core/TableRow'
+import TableCell from '@material-ui/core/TableCell'
+import TableBody from '@material-ui/core/TableBody'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import BlogForm from './components/BlogForm'
@@ -7,103 +19,97 @@ import Notification from './components/Notification'
 import Togglable from './components/Togglable'
 import { setNotification } from './reducers/NotificationReducer'
 import { fetchBlogs } from './reducers/BlogsReducer'
-import { connect } from 'react-redux'
+import { setUser } from './reducers/UserReducer'
+import Navbar from './components/Navbar'
+import Users from './components/Users'
+import User from './components/User'
 
-const userReducer = (state, action) => {
-  if (action.type === 'SET_USER') {
-    return action.payload
-  }
-  return state
+const padding = {
+  padding: 5
 }
 
 const App = (props) => {
-  const [user, dispatch] = useReducer(userReducer, null)
 
   const blogFormRef = useRef()
 
-  const saveLikesHandler = async (updatedBlog) => {
-    await blogService.update(updatedBlog.id, updatedBlog)
-    props.fetchBlogs()
-  }
-
-  const handleDelete = async (blog) => {
-    if (window.confirm('Remove ' + blog.title  + ' by ' + blog.author)) {
-      await blogService.remove(blog.id)
-        .then(response => {
-        //showNotification(blog.title + ' is removed', 'success')
-          console.log(response)
-        })
-      props.fetchBlogs()
-    }
-  }
-
-
-  useEffect(() => {
-    if (user && user.token)
-      props.fetchBlogs()
-  }, [user])
+  // useEffect(() => {
+  //   if (props.user && props.user.token)
+  //     props.fetchBlogs()
+  // }, [user])
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedUser')
     if (loggedUserJSON) {
       const user = JSON.parse(loggedUserJSON)
-      const action = {
-        type: 'SET_USER',
-        payload: user
-      }
-      dispatch(action)
+      props.setUser(user)
       blogService.setToken(user.token)
       props.fetchBlogs()
     }
   }, [])
 
 
-  const logout = () => {
-    window.localStorage.removeItem('loggedUser')
-    const action = {
-      type: 'SET_USER',
-      payload: null
-    }
-    dispatch(action)
-  }
-
-
   const createBlog = (blog) => {
     blogService.create({
       ...blog,
-      userId: user.id
+      userId: props.user.id
     })
     props.setNotification('new blog ' + blog.title + ' by ' + blog.author + ' added.')
     blogFormRef.current.toggleVisibility()
   }
 
-  if (user === null) {
-    return <div>
+  if (props.user === null) {
+    return <Container>
       <Notification />
-      <LoginForm setUser={dispatch} />
-    </div>
+      <LoginForm />
+    </Container>
   }
 
   return (
-    <div>
+    <Container>
+      <Navbar/>
       <div style={{ margin:10 }}>
         <h1>blogs</h1>
         <Notification />
-        {user.name + ' logged in'}
-        <button type="button" onClick={logout}>logout</button>
-        <Togglable buttonLabel="new blog" ref={blogFormRef}>
-          <BlogForm createBlog={createBlog} />
-        </Togglable>
+        <Switch>
+          <Route path="/users/:id">
+            <User />
+          </Route>
+          <Route path="/users">
+            <Users />
+          </Route>
+          <Route path="/blogs/:id">
+            <Blog/>
+          </Route>
+          <Route path="/">
+            <Togglable buttonLabel="new blog" ref={blogFormRef}>
+              <BlogForm createBlog={createBlog} />
+            </Togglable>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableBody>
+                  {props.blogs.map(blog =>
+                    <TableRow key={blog.id}>
+                      <TableCell>
+                        <Link key={blog.id} style={padding} to={`/blogs/${blog.id}`}>
+                          <Blog blogId={blog.id} />
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Route>
+        </Switch>
       </div>
-      {props.blogs.map(blog =>
-        <Blog key={blog.id} saveLikesHandler={saveLikesHandler} handleDelete={handleDelete} user={user} blog={blog} />
-      )}
-    </div>
+
+    </Container>
   )
 }
 
 const mapStateToProps = (state) => {
   return {
+    user: state.user,
     blogs: state.blogs
   }
 }
@@ -111,6 +117,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = {
   setNotification: setNotification,
   fetchBlogs: fetchBlogs,
+  setUser: setUser,
 }
 
 const ConnectedApp = connect(mapStateToProps, mapDispatchToProps)(App)
